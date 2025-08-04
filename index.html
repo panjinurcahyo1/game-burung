@@ -923,24 +923,18 @@
         gameContainer.addEventListener('touchstart', handleGameInput);
 
         function handleGameInput(e) {
-            // Don't interfere with menu buttons and UI elements
-            if (e.target.closest('#mainMenu') || 
-                e.target.closest('#gameOver') || 
-                e.target.closest('#congratsMessage') ||
-                e.target.classList.contains('menu-btn') ||
-                e.target.classList.contains('btn')) {
-                return;
-            }
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (!gameStarted && mainMenu.style.display !== 'flex') {
-                startGame();
-            } else if (gameRunning) {
-                jump();
-            }
-        }
+    // Jangan lanjut jika klik bukan untuk main atau sedang game over
+    if (!gameRunning) return;
+
+    // Jangan ganggu UI tombol
+    if (e.target.closest('.btn') || e.target.closest('.menu-btn')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    jump();
+}
+
 
         // Menu button events
         startBtn.addEventListener('click', (e) => {
