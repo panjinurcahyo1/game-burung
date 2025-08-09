@@ -451,7 +451,7 @@
             
             <!-- Petunjuk untuk developer -->
             <div style="position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); font-size: 10px; color: rgba(0,0,0,0.5); text-align: center;">
-                <p></p>
+                <p>© 2025 Bungsu. All rights reserved.</p>
             </div>
         </div>
 
@@ -466,9 +466,9 @@
         
         <!-- Game Over Screen -->
         <div id="gameOver">
-            <h2>💀CUPU BGT IH!</h2>
-            <p>Skor Anda: <span id="finalScore">0</span></p>
-            <p id="newRecord" style="color: #4CAF50; font-weight: bold; display: none;">🎉 REKOR BARU! 🎉</p>
+            <h2>💀 PAYAH!</h2>
+            <p>Skor Kamu: <span id="finalScore">0</span></p>
+            <p id="newRecord" style="color: #4CAF50; font-weight: bold; display: none;">🎉REKOR CUY!</p>
             <button class="btn" id="restartBtn">🔄 MAIN LAGI</button>
             <button class="btn btn-secondary" id="menuBtn">🏠 MENU UTAMA</button>
         </div>
@@ -487,528 +487,362 @@
     </div>
 
     <script>
-        // Game Elements
-        const bird = document.getElementById('bird');
-        const gameContainer = document.getElementById('gameContainer');
-        const scoreElement = document.getElementById('score');
-        const bestScoreElement = document.getElementById('bestScore');
-        const gameOverDiv = document.getElementById('gameOver');
-        const finalScoreSpan = document.getElementById('finalScore');
-        const newRecordDiv = document.getElementById('newRecord');
-        const restartBtn = document.getElementById('restartBtn');
-        const menuBtn = document.getElementById('menuBtn');
-        const congratsMessage = document.getElementById('congratsMessage');
-        const continueBtn = document.getElementById('continueBtn');
-        const instructions = document.getElementById('instructions');
-        
-        // Menu Elements
-        const mainMenu = document.getElementById('mainMenu');
-        const startBtn = document.getElementById('startBtn');
-        const highScoreDiv = document.getElementById('highScore');
-        const loading = document.getElementById('loading');
-        const menuBird = document.getElementById('menuBird');
+       // Game Elements
+const bird = document.getElementById('bird');
+const gameContainer = document.getElementById('gameContainer');
+const scoreElement = document.getElementById('score');
+const bestScoreElement = document.getElementById('bestScore');
+const gameOverDiv = document.getElementById('gameOver');
+const finalScoreSpan = document.getElementById('finalScore');
+const newRecordDiv = document.getElementById('newRecord');
+const restartBtn = document.getElementById('restartBtn');
+const menuBtn = document.getElementById('menuBtn');
+const congratsMessage = document.getElementById('congratsMessage');
+const continueBtn = document.getElementById('continueBtn');
+const instructions = document.getElementById('instructions');
 
-        // Game Variables
-        let birdY = 250;
-        let birdVelocity = 0;
-        let gravity = 0.6;
-        let jumpPower = -12;
-        let gameRunning = false;
-        let gameStarted = false;
-        let score = 0;
-        let bestScore = 0;
-        let pipes = [];
-        let gameSpeed = 2;
-        let pipeSpawnTimer = 0;
-        let congratsShown = false;
-        let particles = [];
-        let gameContainerRect = null;
+// Menu Elements
+const mainMenu = document.getElementById('mainMenu');
+const startBtn = document.getElementById('startBtn');
+const highScoreDiv = document.getElementById('highScore');
+const loading = document.getElementById('loading');
+const menuBird = document.getElementById('menuBird');
 
-        // Bird image source
-        const BIRD_IMAGE_URL = "assets/IMG_6243.png";
-        const MENU_BIRD_IMAGE_URL = "assets/IMG_6243.png";
-        
-        const DEFAULT_BIRD_SVG = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjE1IiBjeT0iMTUiIHJ4PSIxNCIgcnk9IjEyIiBmaWxsPSIjRkZENzAwIiBzdHJva2U9IiNGRkE1MDAiIHN0cm9rZS13aWR0aD0iMSIvPgo8Y2lyY2xlIGN4PSIyMiIgY3k9IjEwIiByPSIzIiBmaWxsPSIjMDAwIi8+Cjxwb2x5Z29uIHBvaW50cz0iMjgsMTggMzAsMTggMzAsMjIgMjgsMjIiIGZpbGw9IiNGRjQ1MDAiLz4KPC9zdmc+";
+// 🎵 Sound Effects
+const jumpSound = new Audio('assets/jump.mp3');
+jumpSound.volume = 0.5; // Volume 50%
 
-        // Load best score from variable (localStorage alternative)
-        let savedBestScore = 0;
+// Game Variables
+let birdY = 250;
+let birdVelocity = 0;
+let gravity = 0.6;
+let jumpPower = -12;
+let gameRunning = false;
+let gameStarted = false;
+let score = 0;
+let bestScore = 0;
+let pipes = [];
+let gameSpeed = 2;
+let pipeSpawnTimer = 0;
+let congratsShown = false;
+let particles = [];
+let gameContainerRect = null;
 
-        // Get game container dimensions
-        function updateGameContainerRect() {
-            gameContainerRect = gameContainer.getBoundingClientRect();
+// Bird image source
+const BIRD_IMAGE_URL = "assets/IMG_6243.png";
+const MENU_BIRD_IMAGE_URL = "assets/IMG_6243.png";
+
+const DEFAULT_BIRD_SVG = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjE1IiBjeT0iMTUiIHJ4PSIxNCIgcnk9IjEyIiBmaWxsPSIjRkZENzAwIiBzdHJva2U9IiNGRkE1MDAiIHN0cm9rZS13aWR0aD0iMSIvPgo8Y2lyY2xlIGN4PSIyMiIgY3k9IjEwIiByPSIzIiBmaWxsPSIjMDAwIi8+Cjxwb2x5Z29uIHBvaW50cz0iMjgsMTggMzAsMTggMzAsMjIgMjgsMjIiIGZpbGw9IiNGRjQ1MDAiLz4KPC9zdmc+";
+
+// 💾 Load best score dari localStorage (jika ada)
+let savedBestScore = localStorage.getItem('bestScore');
+if (savedBestScore) {
+    bestScore = parseInt(savedBestScore);
+} else {
+    bestScore = 0;
+}
+
+// Get game container dimensions
+function updateGameContainerRect() {
+    gameContainerRect = gameContainer.getBoundingClientRect();
+}
+
+// Initialize game
+function init() {
+    setTimeout(() => {
+        loading.style.display = 'none';
+        showMainMenu();
+    }, 1500);
+    
+    updateBestScoreDisplay();
+    updateGameContainerRect();
+    
+    window.addEventListener('resize', updateGameContainerRect);
+}
+
+// Show main menu
+function showMainMenu() {
+    mainMenu.style.display = 'flex';
+    instructions.style.display = 'none';
+    gameStarted = false;
+    gameRunning = false;
+    
+    birdY = 250;
+    updateBirdPosition();
+    clearAllPipes();
+    updateBestScoreDisplay();
+}
+
+// Clear all pipes from DOM
+function clearAllPipes() {
+    pipes.forEach(pipe => {
+        if (pipe.top && pipe.top.parentNode) {
+            pipe.top.remove();
         }
-
-        // Initialize game
-        function init() {
-            setTimeout(() => {
-                loading.style.display = 'none';
-                showMainMenu();
-            }, 1500);
-            
-            bestScore = savedBestScore;
-            updateBestScoreDisplay();
-            updateGameContainerRect();
-            
-            // Update container rect on resize
-            window.addEventListener('resize', updateGameContainerRect);
+        if (pipe.bottom && pipe.bottom.parentNode) {
+            pipe.bottom.remove();
         }
+    });
+    pipes = [];
+    document.querySelectorAll('.pipe').forEach(pipe => pipe.remove());
+}
 
-        // Show main menu
-        function showMainMenu() {
-            mainMenu.style.display = 'flex';
-            instructions.style.display = 'none';
-            gameStarted = false;
-            gameRunning = false;
-            
-            // Reset bird position for menu
-            birdY = 250;
-            updateBirdPosition();
-            
-            // Clear pipes
-            clearAllPipes();
-            
-            updateBestScoreDisplay();
+function hideMainMenu() {
+    mainMenu.style.display = 'none';
+    instructions.style.display = 'block';
+}
+
+function startGame() {
+    hideMainMenu();
+    initGame();
+}
+
+function initGame() {
+    updateGameContainerRect();
+    birdY = 250;
+    birdVelocity = 0;
+    score = 0;
+    gameSpeed = 2;
+    pipeSpawnTimer = 0;
+    congratsShown = false;
+    gameStarted = true;
+    gameRunning = true;
+    particles = [];
+    clearAllPipes();
+    updateBirdPosition();
+    updateScore();
+    hideGameOver();
+    hideCongrats();
+    gameLoop();
+}
+
+function updateBirdPosition() {
+    bird.style.top = birdY + 'px';
+    if (birdVelocity < 0) {
+        bird.classList.add('flying');
+        bird.classList.remove('falling');
+    } else {
+        bird.classList.add('falling');
+        bird.classList.remove('flying');
+    }
+}
+
+// Bird jump
+function jump() {
+    if (gameRunning) {
+        birdVelocity = jumpPower;
+
+        // 🔊 Mainkan suara lompat
+        jumpSound.currentTime = 0;
+        jumpSound.play();
+
+        bird.classList.add('bounce');
+        setTimeout(() => bird.classList.remove('bounce'), 300);
+        createParticles(95, birdY + 25, 5);
+        bird.style.filter = 'brightness(1.2)';
+        setTimeout(() => bird.style.filter = 'brightness(1)', 100);
+    }
+}
+
+function createParticles(x, y, count) {
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = (x + (Math.random() - 0.5) * 20) + 'px';
+        particle.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
+        const colors = ['#FFD700', '#FFA500', '#FF6347', '#32CD32'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        gameContainer.appendChild(particle);
+        const dx = (Math.random() - 0.5) * 100;
+        const dy = (Math.random() - 0.5) * 100;
+        const animation = particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+        ], { duration: 1000, easing: 'ease-out' });
+        animation.onfinish = () => { if (particle.parentNode) particle.remove(); };
+        particles.push(particle);
+    }
+}
+
+function createPipe() {
+    if (!gameContainerRect) updateGameContainerRect();
+    const gap = 180;
+    const minHeight = 50;
+    const maxHeight = Math.min(gameContainerRect.height - gap - 100, 350);
+    const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
+    const bottomHeight = gameContainerRect.height - topHeight - gap;
+    const pipeTop = document.createElement('div');
+    pipeTop.className = 'pipe pipe-top';
+    pipeTop.style.height = topHeight + 'px';
+    pipeTop.style.left = (gameContainerRect.width || 400) + 'px';
+    gameContainer.appendChild(pipeTop);
+    const pipeBottom = document.createElement('div');
+    pipeBottom.className = 'pipe pipe-bottom';
+    pipeBottom.style.height = bottomHeight + 'px';
+    pipeBottom.style.left = (gameContainerRect.width || 400) + 'px';
+    gameContainer.appendChild(pipeBottom);
+    pipes.push({ top: pipeTop, bottom: pipeBottom, x: gameContainerRect.width || 400, scored: false, topHeight: topHeight, gap: gap });
+}
+
+function updatePipes() {
+    for (let i = pipes.length - 1; i >= 0; i--) {
+        const pipe = pipes[i];
+        if (!pipe.top || !pipe.bottom || !pipe.top.parentNode || !pipe.bottom.parentNode) {
+            pipes.splice(i, 1);
+            continue;
         }
-
-        // Clear all pipes from DOM
-        function clearAllPipes() {
-            pipes.forEach(pipe => {
-                if (pipe.top && pipe.top.parentNode) {
-                    pipe.top.remove();
-                }
-                if (pipe.bottom && pipe.bottom.parentNode) {
-                    pipe.bottom.remove();
-                }
-            });
-            pipes = [];
-            
-            // Also remove any remaining pipe elements
-            document.querySelectorAll('.pipe').forEach(pipe => pipe.remove());
-        }
-
-        // Hide main menu and start game
-        function hideMainMenu() {
-            mainMenu.style.display = 'none';
-            instructions.style.display = 'block';
-        }
-
-        // Start new game
-        function startGame() {
-            hideMainMenu();
-            initGame();
-        }
-
-        // Initialize game variables
-        function initGame() {
-            updateGameContainerRect();
-            
-            birdY = 250;
-            birdVelocity = 0;
-            score = 0;
-            gameSpeed = 2;
-            pipeSpawnTimer = 0;
-            congratsShown = false;
-            gameStarted = true;
-            gameRunning = true;
-            particles = [];
-            
-            // Clear existing pipes
-            clearAllPipes();
-            
-            updateBirdPosition();
+        pipe.x -= gameSpeed;
+        pipe.top.style.left = pipe.x + 'px';
+        pipe.bottom.style.left = pipe.x + 'px';
+        if (!pipe.scored && pipe.x + 60 < 80) {
+            score++;
+            pipe.scored = true;
             updateScore();
-            hideGameOver();
-            hideCongrats();
-            
-            gameLoop();
+            createParticles(200, 100, 8);
+            scoreElement.style.transform = 'scale(1.2)';
+            setTimeout(() => scoreElement.style.transform = 'scale(1)', 200);
+            if (score === 10 && !congratsShown) showCongrats();
         }
-
-        // Update bird position
-        function updateBirdPosition() {
-            bird.style.top = birdY + 'px';
-            
-            // Bird animation
-            if (birdVelocity < 0) {
-                bird.classList.add('flying');
-                bird.classList.remove('falling');
-            } else {
-                bird.classList.add('falling');
-                bird.classList.remove('flying');
-            }
+        if (pipe.x < -80) {
+            if (pipe.top.parentNode) pipe.top.remove();
+            if (pipe.bottom.parentNode) pipe.bottom.remove();
+            pipes.splice(i, 1);
         }
+    }
+}
 
-        // Bird jump
-        function jump() {
-            if (gameRunning) {
-                birdVelocity = jumpPower;
-                bird.classList.add('bounce');
-                setTimeout(() => bird.classList.remove('bounce'), 300);
-                
-                // Create jump particles
-                createParticles(95, birdY + 25, 5);
-                
-                // Play jump sound effect (visual feedback)
-                bird.style.filter = 'brightness(1.2)';
-                setTimeout(() => bird.style.filter = 'brightness(1)', 100);
-            }
+function checkCollision() {
+    if (!gameContainerRect) updateGameContainerRect();
+    const birdRect = { x: 80, y: birdY, width: 40, height: 40 };
+    if (birdY <= 0 || birdY + birdRect.height >= (gameContainerRect.height || 600)) return true;
+    for (let pipe of pipes) {
+        if (!pipe.top || !pipe.bottom) continue;
+        const pipeX = pipe.x;
+        const pipeWidth = 60;
+        if (birdRect.x + birdRect.width > pipeX && birdRect.x < pipeX + pipeWidth) {
+            const topPipeBottom = pipe.topHeight;
+            const bottomPipeTop = pipe.topHeight + pipe.gap;
+            if (birdRect.y < topPipeBottom || birdRect.y + birdRect.height > bottomPipeTop) return true;
         }
+    }
+    return false;
+}
 
-        // Create particle effects
-        function createParticles(x, y, count) {
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = (x + (Math.random() - 0.5) * 20) + 'px';
-                particle.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
-                
-                const colors = ['#FFD700', '#FFA500', '#FF6347', '#32CD32'];
-                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                
-                gameContainer.appendChild(particle);
-                
-                // Animate particle
-                const dx = (Math.random() - 0.5) * 100;
-                const dy = (Math.random() - 0.5) * 100;
-                
-                const animation = particle.animate([
-                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-                    { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
-                ], {
-                    duration: 1000,
-                    easing: 'ease-out'
-                });
-                
-                animation.onfinish = () => {
-                    if (particle.parentNode) {
-                        particle.remove();
-                    }
-                };
-                
-                particles.push(particle);
-            }
-        }
+function updateScore() {
+    scoreElement.textContent = 'Score: ' + score;
+}
 
-        // Create new pipe
-        function createPipe() {
-            if (!gameContainerRect) {
-                updateGameContainerRect();
-            }
-            
-            const gap = 180;
-            const minHeight = 50;
-            const maxHeight = Math.min(gameContainerRect.height - gap - 100, 350);
-            const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-            const bottomHeight = gameContainerRect.height - topHeight - gap;
+function updateBestScoreDisplay() {
+    bestScoreElement.textContent = 'Best: ' + bestScore;
+    highScoreDiv.textContent = '🏆 Skor Terbaik: ' + bestScore;
+}
 
-            // Top pipe
-            const pipeTop = document.createElement('div');
-            pipeTop.className = 'pipe pipe-top';
-            pipeTop.style.height = topHeight + 'px';
-            pipeTop.style.left = (gameContainerRect.width || 400) + 'px';
-            gameContainer.appendChild(pipeTop);
+function showCongrats() {
+    congratsShown = true;
+    gameRunning = false;
+    congratsMessage.style.display = 'block';
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+            createParticles(Math.random() * (gameContainerRect.width || 400), Math.random() * 300, 3);
+        }, i * 100);
+    }
+}
 
-            // Bottom pipe
-            const pipeBottom = document.createElement('div');
-            pipeBottom.className = 'pipe pipe-bottom';
-            pipeBottom.style.height = bottomHeight + 'px';
-            pipeBottom.style.left = (gameContainerRect.width || 400) + 'px';
-            gameContainer.appendChild(pipeBottom);
+function hideCongrats() {
+    congratsMessage.style.display = 'none';
+}
 
-            pipes.push({
-                top: pipeTop,
-                bottom: pipeBottom,
-                x: gameContainerRect.width || 400,
-                scored: false,
-                topHeight: topHeight,
-                gap: gap
-            });
-        }
+function gameOver() {
+    gameRunning = false;
+    gameStarted = false;
+    if (score > bestScore) {
+        bestScore = score;
+        savedBestScore = bestScore;
+        localStorage.setItem('bestScore', bestScore); // 💾 simpan best score
+        updateBestScoreDisplay();
+        newRecordDiv.style.display = 'block';
+    } else {
+        newRecordDiv.style.display = 'none';
+    }
+    finalScoreSpan.textContent = score;
+    gameOverDiv.style.display = 'block';
+    createParticles(200, 300, 15);
+    bird.style.filter = 'brightness(0.5)';
+    setTimeout(() => bird.style.filter = 'brightness(1)', 1000);
+}
 
-        // Update pipes
-        function updatePipes() {
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                const pipe = pipes[i];
-                
-                // Check if pipe elements still exist
-                if (!pipe.top || !pipe.bottom || !pipe.top.parentNode || !pipe.bottom.parentNode) {
-                    pipes.splice(i, 1);
-                    continue;
-                }
-                
-                pipe.x -= gameSpeed;
-                pipe.top.style.left = pipe.x + 'px';
-                pipe.bottom.style.left = pipe.x + 'px';
+function hideGameOver() {
+    gameOverDiv.style.display = 'none';
+}
 
-                // Check scoring
-                if (!pipe.scored && pipe.x + 60 < 80) { // Bird passed the pipe
-                    score++;
-                    pipe.scored = true;
-                    updateScore();
-                    
-                    // Score effects
-                    createParticles(200, 100, 8);
-                    scoreElement.style.transform = 'scale(1.2)';
-                    setTimeout(() => scoreElement.style.transform = 'scale(1)', 200);
-                    
-                    // Show congratulations at score 10
-                    if (score === 10 && !congratsShown) {
-                        showCongrats();
-                    }
-                }
-
-                // Remove pipes that passed
-                if (pipe.x < -80) {
-                    if (pipe.top.parentNode) pipe.top.remove();
-                    if (pipe.bottom.parentNode) pipe.bottom.remove();
-                    pipes.splice(i, 1);
-                }
-            }
-        }
-
-        // Check collision with improved detection
-        function checkCollision() {
-            if (!gameContainerRect) {
-                updateGameContainerRect();
-            }
-            
-            const birdRect = {
-                x: 80,
-                y: birdY,
-                width: 40, // Slightly smaller hitbox for better gameplay
-                height: 40
-            };
-
-            // Ground and ceiling collision
-            if (birdY <= 0 || birdY + birdRect.height >= (gameContainerRect.height || 600)) {
-                return true;
-            }
-
-            // Pipe collision
-            for (let pipe of pipes) {
-                if (!pipe.top || !pipe.bottom) continue;
-                
-                const pipeX = pipe.x;
-                const pipeWidth = 60;
-                
-                // Check if bird is in pipe's x range
-                if (birdRect.x + birdRect.width > pipeX && birdRect.x < pipeX + pipeWidth) {
-                    const topPipeBottom = pipe.topHeight;
-                    const bottomPipeTop = pipe.topHeight + pipe.gap;
-                    
-                    // Check if bird hits top or bottom pipe
-                    if (birdRect.y < topPipeBottom || birdRect.y + birdRect.height > bottomPipeTop) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        // Update score display
-        function updateScore() {
-            scoreElement.textContent = 'Score: ' + score;
-        }
-
-        // Update best score display
-        function updateBestScoreDisplay() {
-            bestScoreElement.textContent = 'Best: ' + bestScore;
-            highScoreDiv.textContent = '🏆 Skor Terbaik: ' + bestScore;
-        }
-
-        // Show congratulations
-        function showCongrats() {
-            congratsShown = true;
-            gameRunning = false;
-            congratsMessage.style.display = 'block';
-            
-            // Celebration particles
-            for (let i = 0; i < 20; i++) {
-                setTimeout(() => {
-                    createParticles(
-                        Math.random() * (gameContainerRect.width || 400),
-                        Math.random() * 300,
-                        3
-                    );
-                }, i * 100);
-            }
-        }
-
-        // Hide congratulations
-        function hideCongrats() {
-            congratsMessage.style.display = 'none';
-        }
-
-        // Game over
-        function gameOver() {
-            gameRunning = false;
-            gameStarted = false;
-            
-            // Check for new record
-            if (score > bestScore) {
-                bestScore = score;
-                savedBestScore = bestScore;
-                updateBestScoreDisplay();
-                newRecordDiv.style.display = 'block';
-            } else {
-                newRecordDiv.style.display = 'none';
-            }
-            
-            finalScoreSpan.textContent = score;
-            gameOverDiv.style.display = 'block';
-            
-            // Game over effects
-            createParticles(200, 300, 15);
-            bird.style.filter = 'brightness(0.5)';
-            setTimeout(() => bird.style.filter = 'brightness(1)', 1000);
-        }
-
-        // Hide game over
-        function hideGameOver() {
-            gameOverDiv.style.display = 'none';
-        }
-
-        // Main game loop
-        function gameLoop() {
-            if (!gameRunning) return;
-
-            // Update bird physics
-            birdVelocity += gravity;
-            birdY += birdVelocity;
-            updateBirdPosition();
-
-            // Spawn pipes
-            pipeSpawnTimer++;
-            if (pipeSpawnTimer >= 90) { // Spawn every 90 frames (~1.5 seconds at 60fps)
-                createPipe();
-                pipeSpawnTimer = 0;
-            }
-
-            // Update pipes
-            updatePipes();
-
-            // Check collision
-            if (checkCollision()) {
-                gameOver();
-                return;
-            }
-
-            // Increase game speed gradually
-            if (score > 0 && score % 5 === 0) {
-                gameSpeed = Math.min(2 + (score / 5) * 0.3, 4); // Cap max speed at 4
-            }
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Prevent context menu on long press (mobile)
-        gameContainer.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-        });
-
-        // Event Listeners
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.key === ' ') {
-                e.preventDefault();
-                if (!gameStarted && mainMenu.style.display !== 'flex') {
-                    startGame();
-                } else if (gameRunning) {
-                    jump();
-                }
-            }
-        });
-
-        // Improved touch/click handling
-        gameContainer.addEventListener('click', handleGameInput);
-        gameContainer.addEventListener('touchstart', handleGameInput);
-
-        function handleGameInput(e) {
-    // Jangan lanjut jika klik bukan untuk main atau sedang game over
+function gameLoop() {
     if (!gameRunning) return;
+    birdVelocity += gravity;
+    birdY += birdVelocity;
+    updateBirdPosition();
+    pipeSpawnTimer++;
+    if (pipeSpawnTimer >= 90) {
+        createPipe();
+        pipeSpawnTimer = 0;
+    }
+    updatePipes();
+    if (checkCollision()) {
+        gameOver();
+        return;
+    }
+    if (score > 0 && score % 5 === 0) {
+        gameSpeed = Math.min(2 + (score / 5) * 0.3, 4);
+    }
+    requestAnimationFrame(gameLoop);
+}
 
-    // Jangan ganggu UI tombol
+gameContainer.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        if (!gameStarted && mainMenu.style.display !== 'flex') {
+            startGame();
+        } else if (gameRunning) {
+            jump();
+        }
+    }
+});
+
+gameContainer.addEventListener('click', handleGameInput);
+gameContainer.addEventListener('touchstart', handleGameInput);
+
+function handleGameInput(e) {
+    if (!gameRunning) return;
     if (e.target.closest('.btn') || e.target.closest('.menu-btn')) return;
-
     e.preventDefault();
     e.stopPropagation();
-
     jump();
 }
 
+startBtn.addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
+startBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); startGame(); });
+restartBtn.addEventListener('click', (e) => { e.stopPropagation(); hideGameOver(); initGame(); });
+restartBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); hideGameOver(); initGame(); });
+menuBtn.addEventListener('click', (e) => { e.stopPropagation(); hideGameOver(); showMainMenu(); });
+menuBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); hideGameOver(); showMainMenu(); });
+continueBtn.addEventListener('click', (e) => { e.stopPropagation(); hideCongrats(); gameRunning = true; gameLoop(); });
+continueBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); hideCongrats(); gameRunning = true; gameLoop(); });
 
-        // Menu button events
-        startBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            startGame();
-        });
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) event.preventDefault();
+    lastTouchEnd = now;
+}, false);
 
-        startBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            startGame();
-        });
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => updateGameContainerRect(), 100);
+});
+window.addEventListener('resize', () => updateGameContainerRect());
 
-        restartBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            initGame();
-        });
+init();
 
-        restartBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            initGame();
-        });
-
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            showMainMenu();
-        });
-
-        menuBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            showMainMenu();
-        });
-
-        continueBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hideCongrats();
-            gameRunning = true;
-            gameLoop();
-        });
-
-        continueBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            hideCongrats();
-            gameRunning = true;
-            gameLoop();
-        });
-
-        // Prevent zoom on double tap (iOS Safari)
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // Handle orientation change
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                updateGameContainerRect();
-            }, 100);
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            updateGameContainerRect();
-        });
-
-        // Initialize the game
-        init();
     </script>
 </body>
 </html>
