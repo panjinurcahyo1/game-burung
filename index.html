@@ -468,7 +468,7 @@
         <div id="gameOver">
             <h2>💀 PAYAH!</h2>
             <p>Skor Kamu: <span id="finalScore">0</span></p>
-            <p id="newRecord" style="color: #4CAF50; font-weight: bold; display: none;">🎉REKOR CUY!</p>
+            <p id="newRecord" style="color: #4CAF50; font-weight: bold; display: none;">🎉 REKOR CUY!</p>
             <button class="btn" id="restartBtn">🔄 MAIN LAGI</button>
             <button class="btn btn-secondary" id="menuBtn">🏠 MENU UTAMA</button>
         </div>
@@ -477,7 +477,7 @@
         <div id="congratsMessage">
             <h1>GOKIL!</h1>
             <p></p>
-            <button class="btn" id="continueBtn">✨LANJUT BERMAIN</button>
+            <button class="btn" id="continueBtn">✨ LANJUT BERMAIN</button>
         </div>
 
         <!-- Instructions -->
@@ -487,7 +487,7 @@
     </div>
 
     <script>
-        // Game Elements
+       // Game Elements
 const bird = document.getElementById('bird');
 const gameContainer = document.getElementById('gameContainer');
 const scoreElement = document.getElementById('score');
@@ -507,10 +507,6 @@ const startBtn = document.getElementById('startBtn');
 const highScoreDiv = document.getElementById('highScore');
 const loading = document.getElementById('loading');
 const menuBird = document.getElementById('menuBird');
-
-// 🎵 Tambahan: Sound Effects
-const jumpSound = new Audio('assets/jump.mp3'); // pastikan file ada di assets
-jumpSound.volume = 0.5; // volume setengah
 
 // Game Variables
 let birdY = 250;
@@ -645,380 +641,216 @@ function updateBirdPosition() {
 function jump() {
     if (gameRunning) {
         birdVelocity = jumpPower;
-
-        // 🔊 Mainkan suara lompat
-        jumpSound.currentTime = 0;
-        jumpSound.play();
-
         bird.classList.add('bounce');
         setTimeout(() => bird.classList.remove('bounce'), 300);
         
         // Create jump particles
         createParticles(95, birdY + 25, 5);
         
-        // Visual feedback
+        // Play jump sound effect (visual feedback)
         bird.style.filter = 'brightness(1.2)';
         setTimeout(() => bird.style.filter = 'brightness(1)', 100);
     }
 }
 
+function createParticles(x, y, count) {
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = (x + (Math.random() - 0.5) * 20) + 'px';
+        particle.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
+        const colors = ['#FFD700', '#FFA500', '#FF6347', '#32CD32'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        gameContainer.appendChild(particle);
+        const dx = (Math.random() - 0.5) * 100;
+        const dy = (Math.random() - 0.5) * 100;
+        const animation = particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+        ], { duration: 1000, easing: 'ease-out' });
+        animation.onfinish = () => { if (particle.parentNode) particle.remove(); };
+        particles.push(particle);
+    }
+}
 
-        // Create particle effects
-        function createParticles(x, y, count) {
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = (x + (Math.random() - 0.5) * 20) + 'px';
-                particle.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
-                
-                const colors = ['#FFD700', '#FFA500', '#FF6347', '#32CD32'];
-                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                
-                gameContainer.appendChild(particle);
-                
-                // Animate particle
-                const dx = (Math.random() - 0.5) * 100;
-                const dy = (Math.random() - 0.5) * 100;
-                
-                const animation = particle.animate([
-                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-                    { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
-                ], {
-                    duration: 1000,
-                    easing: 'ease-out'
-                });
-                
-                animation.onfinish = () => {
-                    if (particle.parentNode) {
-                        particle.remove();
-                    }
-                };
-                
-                particles.push(particle);
-            }
+function createPipe() {
+    if (!gameContainerRect) updateGameContainerRect();
+    const gap = 180;
+    const minHeight = 50;
+    const maxHeight = Math.min(gameContainerRect.height - gap - 100, 350);
+    const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
+    const bottomHeight = gameContainerRect.height - topHeight - gap;
+    const pipeTop = document.createElement('div');
+    pipeTop.className = 'pipe pipe-top';
+    pipeTop.style.height = topHeight + 'px';
+    pipeTop.style.left = (gameContainerRect.width || 400) + 'px';
+    gameContainer.appendChild(pipeTop);
+    const pipeBottom = document.createElement('div');
+    pipeBottom.className = 'pipe pipe-bottom';
+    pipeBottom.style.height = bottomHeight + 'px';
+    pipeBottom.style.left = (gameContainerRect.width || 400) + 'px';
+    gameContainer.appendChild(pipeBottom);
+    pipes.push({ top: pipeTop, bottom: pipeBottom, x: gameContainerRect.width || 400, scored: false, topHeight: topHeight, gap: gap });
+}
+
+function updatePipes() {
+    for (let i = pipes.length - 1; i >= 0; i--) {
+        const pipe = pipes[i];
+        if (!pipe.top || !pipe.bottom || !pipe.top.parentNode || !pipe.bottom.parentNode) {
+            pipes.splice(i, 1);
+            continue;
         }
-
-        // Create new pipe
-        function createPipe() {
-            if (!gameContainerRect) {
-                updateGameContainerRect();
-            }
-            
-            const gap = 180;
-            const minHeight = 50;
-            const maxHeight = Math.min(gameContainerRect.height - gap - 100, 350);
-            const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-            const bottomHeight = gameContainerRect.height - topHeight - gap;
-
-            // Top pipe
-            const pipeTop = document.createElement('div');
-            pipeTop.className = 'pipe pipe-top';
-            pipeTop.style.height = topHeight + 'px';
-            pipeTop.style.left = (gameContainerRect.width || 400) + 'px';
-            gameContainer.appendChild(pipeTop);
-
-            // Bottom pipe
-            const pipeBottom = document.createElement('div');
-            pipeBottom.className = 'pipe pipe-bottom';
-            pipeBottom.style.height = bottomHeight + 'px';
-            pipeBottom.style.left = (gameContainerRect.width || 400) + 'px';
-            gameContainer.appendChild(pipeBottom);
-
-            pipes.push({
-                top: pipeTop,
-                bottom: pipeBottom,
-                x: gameContainerRect.width || 400,
-                scored: false,
-                topHeight: topHeight,
-                gap: gap
-            });
+        pipe.x -= gameSpeed;
+        pipe.top.style.left = pipe.x + 'px';
+        pipe.bottom.style.left = pipe.x + 'px';
+        if (!pipe.scored && pipe.x + 60 < 80) {
+            score++;
+            pipe.scored = true;
+            updateScore();
+            createParticles(200, 100, 8);
+            scoreElement.style.transform = 'scale(1.2)';
+            setTimeout(() => scoreElement.style.transform = 'scale(1)', 200);
+            if (score === 10 && !congratsShown) showCongrats();
         }
-
-        // Update pipes
-        function updatePipes() {
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                const pipe = pipes[i];
-                
-                // Check if pipe elements still exist
-                if (!pipe.top || !pipe.bottom || !pipe.top.parentNode || !pipe.bottom.parentNode) {
-                    pipes.splice(i, 1);
-                    continue;
-                }
-                
-                pipe.x -= gameSpeed;
-                pipe.top.style.left = pipe.x + 'px';
-                pipe.bottom.style.left = pipe.x + 'px';
-
-                // Check scoring
-                if (!pipe.scored && pipe.x + 60 < 80) { // Bird passed the pipe
-                    score++;
-                    pipe.scored = true;
-                    updateScore();
-                    
-                    // Score effects
-                    createParticles(200, 100, 8);
-                    scoreElement.style.transform = 'scale(1.2)';
-                    setTimeout(() => scoreElement.style.transform = 'scale(1)', 200);
-                    
-                    // Show congratulations at score 10
-                    if (score === 10 && !congratsShown) {
-                        showCongrats();
-                    }
-                }
-
-                // Remove pipes that passed
-                if (pipe.x < -80) {
-                    if (pipe.top.parentNode) pipe.top.remove();
-                    if (pipe.bottom.parentNode) pipe.bottom.remove();
-                    pipes.splice(i, 1);
-                }
-            }
+        if (pipe.x < -80) {
+            if (pipe.top.parentNode) pipe.top.remove();
+            if (pipe.bottom.parentNode) pipe.bottom.remove();
+            pipes.splice(i, 1);
         }
+    }
+}
 
-        // Check collision with improved detection
-        function checkCollision() {
-            if (!gameContainerRect) {
-                updateGameContainerRect();
-            }
-            
-            const birdRect = {
-                x: 80,
-                y: birdY,
-                width: 40, // Slightly smaller hitbox for better gameplay
-                height: 40
-            };
-
-            // Ground and ceiling collision
-            if (birdY <= 0 || birdY + birdRect.height >= (gameContainerRect.height || 600)) {
-                return true;
-            }
-
-            // Pipe collision
-            for (let pipe of pipes) {
-                if (!pipe.top || !pipe.bottom) continue;
-                
-                const pipeX = pipe.x;
-                const pipeWidth = 60;
-                
-                // Check if bird is in pipe's x range
-                if (birdRect.x + birdRect.width > pipeX && birdRect.x < pipeX + pipeWidth) {
-                    const topPipeBottom = pipe.topHeight;
-                    const bottomPipeTop = pipe.topHeight + pipe.gap;
-                    
-                    // Check if bird hits top or bottom pipe
-                    if (birdRect.y < topPipeBottom || birdRect.y + birdRect.height > bottomPipeTop) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+function checkCollision() {
+    if (!gameContainerRect) updateGameContainerRect();
+    const birdRect = { x: 80, y: birdY, width: 40, height: 40 };
+    if (birdY <= 0 || birdY + birdRect.height >= (gameContainerRect.height || 600)) return true;
+    for (let pipe of pipes) {
+        if (!pipe.top || !pipe.bottom) continue;
+        const pipeX = pipe.x;
+        const pipeWidth = 60;
+        if (birdRect.x + birdRect.width > pipeX && birdRect.x < pipeX + pipeWidth) {
+            const topPipeBottom = pipe.topHeight;
+            const bottomPipeTop = pipe.topHeight + pipe.gap;
+            if (birdRect.y < topPipeBottom || birdRect.y + birdRect.height > bottomPipeTop) return true;
         }
+    }
+    return false;
+}
 
-        // Update score display
-        function updateScore() {
-            scoreElement.textContent = 'Score: ' + score;
-        }
+function updateScore() {
+    scoreElement.textContent = 'Score: ' + score;
+}
 
-        // Update best score display
-        function updateBestScoreDisplay() {
-            bestScoreElement.textContent = 'Best: ' + bestScore;
-            highScoreDiv.textContent = '🏆 Skor Terbaik: ' + bestScore;
-        }
+function updateBestScoreDisplay() {
+    bestScoreElement.textContent = 'Best: ' + bestScore;
+    highScoreDiv.textContent = '🏆 Skor Terbaik: ' + bestScore;
+}
 
-        // Show congratulations
-        function showCongrats() {
-            congratsShown = true;
-            gameRunning = false;
-            congratsMessage.style.display = 'block';
-            
-            // Celebration particles
-            for (let i = 0; i < 20; i++) {
-                setTimeout(() => {
-                    createParticles(
-                        Math.random() * (gameContainerRect.width || 400),
-                        Math.random() * 300,
-                        3
-                    );
-                }, i * 100);
-            }
-        }
+function showCongrats() {
+    congratsShown = true;
+    gameRunning = false;
+    congratsMessage.style.display = 'block';
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+            createParticles(Math.random() * (gameContainerRect.width || 400), Math.random() * 300, 3);
+        }, i * 100);
+    }
+}
 
-        // Hide congratulations
-        function hideCongrats() {
-            congratsMessage.style.display = 'none';
-        }
+function hideCongrats() {
+    congratsMessage.style.display = 'none';
+}
 
-        // Game over
-        function gameOver() {
-            gameRunning = false;
-            gameStarted = false;
-            
-            // Check for new record
-            if (score > bestScore) {
-                bestScore = score;
-                savedBestScore = bestScore;
-                updateBestScoreDisplay();
-                newRecordDiv.style.display = 'block';
-            } else {
-                newRecordDiv.style.display = 'none';
-            }
-            
-            finalScoreSpan.textContent = score;
-            gameOverDiv.style.display = 'block';
-            
-            // Game over effects
-            createParticles(200, 300, 15);
-            bird.style.filter = 'brightness(0.5)';
-            setTimeout(() => bird.style.filter = 'brightness(1)', 1000);
-        }
+function gameOver() {
+    gameRunning = false;
+    gameStarted = false;
+    if (score > bestScore) {
+        bestScore = score;
+        savedBestScore = bestScore;
+        updateBestScoreDisplay();
+        newRecordDiv.style.display = 'block';
+    } else {
+        newRecordDiv.style.display = 'none';
+    }
+    finalScoreSpan.textContent = score;
+    gameOverDiv.style.display = 'block';
+    createParticles(200, 300, 15);
+    bird.style.filter = 'brightness(0.5)';
+    setTimeout(() => bird.style.filter = 'brightness(1)', 1000);
+}
 
-        // Hide game over
-        function hideGameOver() {
-            gameOverDiv.style.display = 'none';
-        }
+function hideGameOver() {
+    gameOverDiv.style.display = 'none';
+}
 
-        // Main game loop
-        function gameLoop() {
-            if (!gameRunning) return;
-
-            // Update bird physics
-            birdVelocity += gravity;
-            birdY += birdVelocity;
-            updateBirdPosition();
-
-            // Spawn pipes
-            pipeSpawnTimer++;
-            if (pipeSpawnTimer >= 90) { // Spawn every 90 frames (~1.5 seconds at 60fps)
-                createPipe();
-                pipeSpawnTimer = 0;
-            }
-
-            // Update pipes
-            updatePipes();
-
-            // Check collision
-            if (checkCollision()) {
-                gameOver();
-                return;
-            }
-
-            // Increase game speed gradually
-            if (score > 0 && score % 5 === 0) {
-                gameSpeed = Math.min(2 + (score / 5) * 0.3, 4); // Cap max speed at 4
-            }
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Prevent context menu on long press (mobile)
-        gameContainer.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-        });
-
-        // Event Listeners
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.key === ' ') {
-                e.preventDefault();
-                if (!gameStarted && mainMenu.style.display !== 'flex') {
-                    startGame();
-                } else if (gameRunning) {
-                    jump();
-                }
-            }
-        });
-
-        // Improved touch/click handling
-        gameContainer.addEventListener('click', handleGameInput);
-        gameContainer.addEventListener('touchstart', handleGameInput);
-
-        function handleGameInput(e) {
-    // Jangan lanjut jika klik bukan untuk main atau sedang game over
+function gameLoop() {
     if (!gameRunning) return;
+    birdVelocity += gravity;
+    birdY += birdVelocity;
+    updateBirdPosition();
+    pipeSpawnTimer++;
+    if (pipeSpawnTimer >= 90) {
+        createPipe();
+        pipeSpawnTimer = 0;
+    }
+    updatePipes();
+    if (checkCollision()) {
+        gameOver();
+        return;
+    }
+    if (score > 0 && score % 5 === 0) {
+        gameSpeed = Math.min(2 + (score / 5) * 0.3, 4);
+    }
+    requestAnimationFrame(gameLoop);
+}
 
-    // Jangan ganggu UI tombol
+gameContainer.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        if (!gameStarted && mainMenu.style.display !== 'flex') {
+            startGame();
+        } else if (gameRunning) {
+            jump();
+        }
+    }
+});
+
+gameContainer.addEventListener('click', handleGameInput);
+gameContainer.addEventListener('touchstart', handleGameInput);
+
+function handleGameInput(e) {
+    if (!gameRunning) return;
     if (e.target.closest('.btn') || e.target.closest('.menu-btn')) return;
-
     e.preventDefault();
     e.stopPropagation();
-
     jump();
 }
 
+startBtn.addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
+startBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); startGame(); });
+restartBtn.addEventListener('click', (e) => { e.stopPropagation(); hideGameOver(); initGame(); });
+restartBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); hideGameOver(); initGame(); });
+menuBtn.addEventListener('click', (e) => { e.stopPropagation(); hideGameOver(); showMainMenu(); });
+menuBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); hideGameOver(); showMainMenu(); });
+continueBtn.addEventListener('click', (e) => { e.stopPropagation(); hideCongrats(); gameRunning = true; gameLoop(); });
+continueBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); hideCongrats(); gameRunning = true; gameLoop(); });
 
-        // Menu button events
-        startBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            startGame();
-        });
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) event.preventDefault();
+    lastTouchEnd = now;
+}, false);
 
-        startBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            startGame();
-        });
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => updateGameContainerRect(), 100);
+});
+window.addEventListener('resize', () => updateGameContainerRect());
 
-        restartBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            initGame();
-        });
+init();
 
-        restartBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            initGame();
-        });
-
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            showMainMenu();
-        });
-
-        menuBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            hideGameOver();
-            showMainMenu();
-        });
-
-        continueBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hideCongrats();
-            gameRunning = true;
-            gameLoop();
-        });
-
-        continueBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            hideCongrats();
-            gameRunning = true;
-            gameLoop();
-        });
-
-        // Prevent zoom on double tap (iOS Safari)
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // Handle orientation change
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                updateGameContainerRect();
-            }, 100);
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            updateGameContainerRect();
-        });
-
-        // Initialize the game
-        init();
     </script>
 </body>
 </html>
